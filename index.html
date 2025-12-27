@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بيانات مجمع السلام</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #0f172a; color: #f8fafc; padding: 10px; margin: 0; }
+        .container { max-width: 100%; background: #1e293b; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        h2 { color: #38bdf8; text-align: center; font-size: 1.2rem; }
+        #status { font-size: 0.8rem; text-align: center; margin-bottom: 10px; color: #94a3b8; }
+        input#search { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: white; box-sizing: border-box; font-size: 1rem; }
+        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid #334155; }
+        table { width: 100%; border-collapse: collapse; background: #1e293b; font-size: 0.85rem; }
+        th, td { padding: 10px; border: 1px solid #334155; text-align: center; white-space: nowrap; }
+        th { background: #0ea5e9; color: white; position: sticky; top: 0; }
+        tr:nth-child(even) { background: #1e293b; }
+        tr:nth-child(odd) { background: #1a2233; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>بيانات المستفيدين لمجمع السلام 👥</h2>
+    <div id="status">⏳ جاري الاتصال بالقاعدة...</div>
+    <input type="text" id="search" placeholder="ابحث عن اسم، رقم، أو حالة..." onkeyup="searchTable()">
+    
+    <div class="table-container">
+        <table id="dataTable">
+            <thead><tr id="tableHeader"></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // الرابط المستخرج من صورتك
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR85oUveKg_3fmBMQ2YjlhBhOlhosd-kTCNTi2ubaWy7fX7QnHty1fdZ4lu3TcKdkDJUySr3DzLCkYz/pub?gid=549072732&single=true&output=csv';
+
+    function loadData() {
+        Papa.parse(csvUrl, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                if (results.data && results.data.length > 0) {
+                    renderTable(results.data);
+                    document.getElementById('status').innerText = "تم التحديث ✅";
+                    document.getElementById('status').style.color = "#4ade80";
+                }
+            },
+            error: function() {
+                document.getElementById('status').innerText = "⚠️ فشل الجلب. تأكد من الإنترنت.";
+                document.getElementById('status').style.color = "#fb7185";
+            }
+        });
+    }
+
+    function renderTable(data) {
+        const headerRow = document.getElementById('tableHeader');
+        const tableBody = document.getElementById('tableBody');
+        const headers = Object.keys(data[0]);
+
+        headerRow.innerHTML = headers.map(h => `<th>${h}</th>`).join('');
+        tableBody.innerHTML = data.map(row => 
+            `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`
+        ).join('');
+    }
+
+    function searchTable() {
+        const filter = document.getElementById("search").value.toLowerCase();
+        const rows = document.querySelectorAll("#tableBody tr");
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+        });
+    }
+
+    window.onload = loadData;
+</script>
+</body>
+</html>
